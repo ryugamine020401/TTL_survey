@@ -1,0 +1,53 @@
+diff --git a/src/audiosource/speech/klatt.cpp b/src/audiosource/speech/klatt.cpp
+index c9572f0..1e44de2 100644
+--- a/src/audiosource/speech/klatt.cpp
++++ b/src/audiosource/speech/klatt.cpp
+@@ -1,5 +1,6 @@
+ #include <math.h>
+ #include <stdlib.h>
++#include <stdio.h>
+ #include "klatt.h"
+ #include "darray.h"
+ #include "resonator.h"
+@@ -8,6 +9,8 @@
+ #define PI 3.1415926535897932384626433832795f
+ #endif
+ 
++FILE *gFrameDump = NULL;
++
+ #ifndef NULL
+ #define NULL 0
+ #endif
+@@ -1032,6 +1035,32 @@ int klatt::synth(int /* aSampleCount */, short *aSamplePointer)
+ 			mFrame.mFormant3Ampdb = AMP_ADJ + (int)tp[ELM_A3];
+ 			mFrame.mFormant4Ampdb = AMP_ADJ + (int)tp[ELM_A4];
+ 
++			if (gFrameDump)
++			{
++				fprintf(gFrameDump,
++					"%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d\n",
++					mFrame.mF0FundamentalFreq, mFrame.mVoicingAmpdb,
++					mFrame.mFormant1Freq, mFrame.mFormant1Bandwidth,
++					mFrame.mFormant2Freq, mFrame.mFormant2Bandwidth,
++					mFrame.mFormant3Freq, mFrame.mFormant3Bandwidth,
++					mFrame.mFormant4Freq, mFrame.mFormant4Bandwidth,
++					mFrame.mFormant5Freq, mFrame.mFormant5Bandwidth,
++					mFrame.mFormant6Freq, mFrame.mFormant6Bandwidth,
++					mFrame.mNasalZeroFreq, mFrame.mNasalZeroBandwidth,
++					mFrame.mNasalPoleFreq, mFrame.mNasalPoleBandwidth,
++					mFrame.mAspirationAmpdb, mFrame.mNoSamplesInOpenPeriod,
++					mFrame.mVoicingBreathiness, mFrame.mVoicingSpectralTiltdb,
++					mFrame.mFricationAmpdb, mFrame.mSkewnessOfAlternatePeriods,
++					mFrame.mFormant1Ampdb, mFrame.mFormant1ParallelBandwidth,
++					mFrame.mFormant2Ampdb, mFrame.mFormant2ParallelBandwidth,
++					mFrame.mFormant3Ampdb, mFrame.mFormant3ParallelBandwidth,
++					mFrame.mFormant4Ampdb, mFrame.mFormant4ParallelBandwidth,
++					mFrame.mFormant5Ampdb, mFrame.mFormant5ParallelBandwidth,
++					mFrame.mFormant6Ampdb, mFrame.mFormant6ParallelBandwidth,
++					mFrame.mParallelNasalPoleAmpdb, mFrame.mBypassFricationAmpdb,
++					mFrame.mPalallelVoicingAmpdb, mFrame.mOverallGaindb);
++			}
++
+ 			parwave(samp);
+ 
+ 			samp += mNspFr;

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Thesis Idea Lab"
+  short_description: "Generate, verify, and synthesize defensible thesis ideas"
+  default_prompt: "Use $develop-thesis-ideas to generate and critically validate research directions for my audio deepfake master thesis."

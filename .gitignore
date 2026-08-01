@@ -1,0 +1,61 @@
+# Secrets and local environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_ed25519*
+
+# Editor / agent-local state
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+.codex-manual-cache/
+.tmp/
+tmp/
+debug.log
+
+# Python caches and environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+.venv-*/
+
+# Downloaded academic papers: keep summaries and citations, not publisher PDFs
+papers/
+survey/*.pdf
+
+# TTS local runtimes, model weights, compilers, upstream source trees, and downloads
+Project/TTS/.venv/
+Project/TTS/.venv-f5/
+Project/TTS/.cache/
+Project/TTS/.tools/
+Project/TTS/.sources/
+Project/TTS/cache/
+Project/TTS/vendor/
+
+# Generated TTS audio. Some stages are downloaded author demos without an
+# explicit redistribution license; regenerate them locally instead.
+Project/TTS/output/*
+!Project/TTS/output/.gitkeep
+
+# Common native build products
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.pyd
+*.exe
+*.dirstamp
+*.Po
+
+# OS noise
+.DS_Store
+Thumbs.db
+Desktop.ini

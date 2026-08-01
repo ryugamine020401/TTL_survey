@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="在本機輸入英文，使用七個不同時代的 TTS pipeline 生成並比較語音。">
+  <title>Seven Stages TTS Lab</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #16283a;
+      --muted: #5d6d7b;
+      --line: #d8e0e6;
+      --paper: #f3f0e9;
+      --card: #fffdf8;
+      --blue: #184d68;
+      --cyan: #2b8392;
+      --orange: #dd793f;
+      --green: #4d8062;
+      --danger: #a13c37;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Noto Sans TC", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background:
+      radial-gradient(circle at 8% 4%, #d6e6e5 0, transparent 25rem),
+      linear-gradient(180deg, #f7f4ed 0%, var(--paper) 100%); }
+    button, textarea { font: inherit; }
+    .shell { width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 36px 0 64px; }
+    header { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: end; margin-bottom: 28px; }
+    .eyebrow { margin: 0 0 7px; color: var(--orange); font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+    h1 { max-width: 760px; margin: 0; font: 700 clamp(34px, 6vw, 66px)/.98 Georgia, "Times New Roman", serif; letter-spacing: -.035em; }
+    .lede { max-width: 720px; margin: 16px 0 0; color: var(--muted); font-size: 17px; line-height: 1.6; }
+    .local-badge { display: flex; gap: 9px; align-items: center; padding: 10px 14px; border: 1px solid #b9cfca; border-radius: 999px; background: #edf6f2; color: #315e4a; font-size: 13px; font-weight: 750; white-space: nowrap; }
+    .local-badge::before { width: 8px; height: 8px; border-radius: 50%; background: var(--green); content: ""; box-shadow: 0 0 0 4px #d6eade; }
+    .composer { padding: 22px; border: 1px solid #cbd5dc; border-radius: 18px; background: rgba(255, 253, 248, .88); box-shadow: 0 18px 50px rgba(32, 56, 72, .08); backdrop-filter: blur(10px); }
+    .composer label { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 10px; font-weight: 800; }
+    .hint { color: var(--muted); font-size: 12px; font-weight: 500; }
+    textarea { width: 100%; min-height: 112px; resize: vertical; padding: 16px 17px; border: 1px solid #bfcbd3; border-radius: 12px; outline: none; background: #fff; color: var(--ink); font-size: 17px; line-height: 1.55; transition: border-color .18s, box-shadow .18s; }
+    textarea:focus { border-color: var(--cyan); box-shadow: 0 0 0 4px rgba(43, 131, 146, .13); }
+    .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 14px; }
+    button { min-height: 43px; padding: 0 17px; border: 0; border-radius: 10px; cursor: pointer; font-weight: 760; transition: transform .16s, opacity .16s, background .16s; }
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+    button:disabled { cursor: wait; opacity: .5; }
+    .primary { background: var(--blue); color: white; }
+    .secondary { border: 1px solid #bdc8cf; background: #fff; color: var(--ink); }
+    .progress { flex: 1; min-width: 180px; color: var(--muted); font-size: 13px; text-align: right; }
+    .error { display: none; margin: 13px 0 0; padding: 11px 13px; border-radius: 9px; background: #fbe9e6; color: var(--danger); font-size: 14px; }
+    .error.visible { display: block; }
+    .section-head { display: flex; justify-content: space-between; gap: 16px; align-items: end; margin: 38px 0 16px; }
+    h2 { margin: 0; font: 700 28px/1.1 Georgia, "Times New Roman", serif; }
+    .section-note { max-width: 620px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; text-align: right; }
+    .timeline { position: relative; display: grid; gap: 12px; }
+    .timeline::before { position: absolute; z-index: 0; top: 24px; bottom: 24px; left: 25px; width: 2px; background: linear-gradient(var(--blue), var(--orange)); content: ""; opacity: .35; }
+    .stage-card { position: relative; z-index: 1; display: grid; grid-template-columns: 52px minmax(210px, .9fr) minmax(280px, 1.35fr) minmax(260px, .95fr); gap: 17px; align-items: center; padding: 16px 17px 16px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--card); box-shadow: 0 5px 18px rgba(42, 55, 65, .035); }
+    .stage-number { display: grid; place-items: center; width: 40px; height: 40px; margin-left: 0; border: 3px solid var(--card); border-radius: 50%; background: var(--blue); color: white; font-size: 16px; font-weight: 850; box-shadow: 0 0 0 1px #aec0cb; }
+    .stage-card:nth-child(n+5) .stage-number { background: var(--orange); }
+    .stage-title { margin: 0 0 4px; font-size: 16px; }
+    .stage-model { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .method { margin: 0; font-size: 13px; line-height: 1.5; }
+    .disclosure { display: block; margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .player { min-width: 0; }
+    .stage-actions { display: flex; align-items: center; gap: 8px; }
+    .generate-one { min-height: 36px; padding: 0 12px; border: 1px solid #b9c7cf; background: #fff; color: var(--blue); font-size: 12px; }
+    .state { overflow: hidden; flex: 1; color: var(--muted); font-size: 12px; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
+    audio { display: none; width: 100%; height: 38px; margin-top: 8px; }
+    audio.ready { display: block; }
+    .download { display: none; margin-top: 5px; color: var(--cyan); font-size: 11px; font-weight: 750; text-decoration: none; }
+    .download.visible { display: inline-block; }
+    .not-ready { opacity: .58; }
+    footer { margin-top: 26px; padding: 18px 0; border-top: 1px solid #cbd3d7; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    code { padding: 2px 5px; border-radius: 4px; background: #e7e4dc; color: #354b58; }
+    @media (max-width: 900px) {
+      .stage-card { grid-template-columns: 52px 1fr 1.3fr; }
+      .player { grid-column: 2 / -1; }
+    }
+    @media (max-width: 650px) {
+      .shell { width: min(100% - 22px, 1180px); padding-top: 24px; }
+      header { grid-template-columns: 1fr; }
+      .local-badge { width: max-content; }
+      .composer { padding: 16px; }
+      .progress { flex-basis: 100%; text-align: left; }
+      .section-head { display: block; }
+      .section-note { margin-top: 8px; text-align: left; }
+      .stage-card { grid-template-columns: 44px 1fr; gap: 11px; padding-right: 13px; }
+      .method, .player { grid-column: 2; }
+      .timeline::before { left: 21px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <div>
+        <p class="eyebrow">Local speech synthesis laboratory</p>
+        <h1>Seven Stages<br>TTS Lab</h1>
+        <p class="lede">輸入同一段英文，讓七個不同時代的文字轉語音 pipeline 在你的電腦上真正生成聲音。從規則式共振峰，一路聽到 prompt-based TTS。</p>
+      </div>
+      <div class="local-badge" id="readyBadge">檢查本機模型中…</div>
+    </header>
+
+    <section class="composer" aria-labelledby="composerTitle">
+      <label id="composerTitle" for="ttsText">
+        <span>要朗讀的英文</span>
+        <span class="hint"><span id="charCount">0</span> / 300</span>
+      </label>
+      <textarea id="ttsText" maxlength="300" spellcheck="true">I will quote an extract from the reverend gentleman's own journal.</textarea>
+      <div class="actions">
+        <button class="primary" id="generateAll">依序生成七個階段</button>
+        <button class="secondary" id="resetText">恢復比較句</button>
+        <span class="progress" id="progress" aria-live="polite">模型狀態讀取中</span>
+      </div>
+      <p class="error" id="globalError" role="alert"></p>
+    </section>
+
+    <div class="section-head">
+      <h2>Methods through time</h2>
+      <p class="section-note">所有音檔都在本機產生並快取。切換大型模型需要載入時間；Stage 5 的 WaveRNN 通常需等待 1–2 分鐘。</p>
+    </div>
+    <main class="timeline" id="stageList" aria-live="polite"></main>
+
+    <footer>
+      僅綁定 <code>127.0.0.1</code>，不會把文字或語音送到雲端。Stage 4 是為了任意文字互動而採用的神經參數橋接展示，不宣稱為完整 Merlin；各模型授權與研究用途限制仍以原專案為準。
+    </footer>
+  </div>
+
+  <script>
+    const comparisonText = "I will quote an extract from the reverend gentleman's own journal.";
+    const textArea = document.querySelector('#ttsText');
+    const charCount = document.querySelector('#charCount');
+    const progress = document.querySelector('#progress');
+    const errorBox = document.querySelector('#globalError');
+    const stageList = document.querySelector('#stageList');
+    const generateAllButton = document.querySelector('#generateAll');
+    const readyBadge = document.querySelector('#readyBadge');
+    let stages = [];
+    let busy = false;
+
+    const updateCount = () => { charCount.textContent = textArea.value.length; };
+    textArea.addEventListener('input', updateCount);
+    updateCount();
+
+    document.querySelector('#resetText').addEventListener('click', () => {
+      textArea.value = comparisonText;
+      updateCount();
+      textArea.focus();
+    });
+
+    function setError(message = '') {
+      errorBox.textContent = message;
+      errorBox.classList.toggle('visible', Boolean(message));
+    }
+
+    function createStageCard(stage) {
+      const article = document.createElement('article');
+      article.className = `stage-card${stage.ready ? '' : ' not-ready'}`;
+      article.dataset.stage = stage.stage;
+
+      const number = document.createElement('div');
+      number.className = 'stage-number';
+      number.textContent = stage.stage;
+
+      const identity = document.createElement('div');
+      const title = document.createElement('h3');
+      title.className = 'stage-title';
+      title.textContent = stage.era;
+      const model = document.createElement('p');
+      model.className = 'stage-model';
+      model.textContent = stage.model;
+      identity.append(title, model);
+
+      const method = document.createElement('p');
+      method.className = 'method';
+      method.textContent = stage.method;
+      const disclosure = document.createElement('span');
+      disclosure.className = 'disclosure';
+      disclosure.textContent = stage.note;
+      method.append(disclosure);
+
+      const player = document.createElement('div');
+      player.className = 'player';
+      const controls = document.createElement('div');
+      controls.className = 'stage-actions';
+      const button = document.createElement('button');
+      button.className = 'generate-one';
+      button.textContent = stage.ready ? '生成這個階段' : '尚未安裝';
+      button.disabled = !stage.ready;
+      button.addEventListener('click', () => generateStage(stage.stage));
+      const state = document.createElement('span');
+      state.className = 'state';
+      state.textContent = stage.ready ? (stage.gpu ? 'GPU' : 'CPU') : stage.missing.join('、');
+      const audio = document.createElement('audio');
+      audio.controls = true;
+      audio.preload = 'metadata';
+      const download = document.createElement('a');
+      download.className = 'download';
+      download.textContent = '下載 WAV';
+      download.download = `stage${stage.stage}.wav`;
+      controls.append(button, state);
+      player.append(controls, audio, download);
+      article.append(number, identity, method, player);
+      return article;
+    }
+
+    async function loadStages() {
+      try {
+        const response = await fetch('/api/stages');
+        const payload = await response.json();
+        stages = payload.stages;
+        stageList.replaceChildren(...stages.map(createStageCard));
+        readyBadge.textContent = payload.all_ready ? '七個階段皆已就緒' : '部分模型尚未安裝';
+        progress.textContent = payload.all_ready ? '可以開始生成' : '請先執行安裝腳本';
+        generateAllButton.disabled = !payload.all_ready;
+      } catch (error) {
+        setError('無法連接本機 TTS 服務。請用 serve.ps1 啟動。');
+        readyBadge.textContent = '本機服務未連線';
+      }
+    }
+
+    function cardParts(stage) {
+      const card = document.querySelector(`[data-stage="${stage}"]`);
+      return {
+        button: card.querySelector('.generate-one'),
+        state: card.querySelector('.state'),
+        audio: card.querySelector('audio'),
+        download: card.querySelector('.download')
+      };
+    }
+
+    async function generateStage(stage, fromBatch = false) {
+      const text = textArea.value.trim();
+      if (!text) { setError('請先輸入要朗讀的英文。'); return false; }
+      if (!fromBatch && busy) { return false; }
+      const parts = cardParts(stage);
+      const previous = parts.button.textContent;
+      parts.button.disabled = true;
+      parts.button.textContent = '生成中…';
+      parts.state.textContent = stage === 7 ? '載入 prompt 模型，請稍候' : '載入模型並合成';
+      setError();
+      if (!fromBatch) { busy = true; generateAllButton.disabled = true; }
+      try {
+        const response = await fetch('/api/synthesize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ stage, text })
+        });
+        const payload = await response.json();
+        if (!response.ok) { throw new Error(payload.detail || '生成失敗'); }
+        const audioUrl = `${payload.audio_url}?v=${Date.now()}`;
+        parts.audio.src = audioUrl;
+        parts.audio.classList.add('ready');
+        parts.download.href = payload.audio_url;
+        parts.download.classList.add('visible');
+        parts.state.textContent = `${payload.cached ? '使用快取' : `完成 ${payload.elapsed_seconds}s`} · 音訊 ${payload.duration_seconds}s`;
+        return true;
+      } catch (error) {
+        parts.state.textContent = '生成失敗';
+        setError(error.message);
+        return false;
+      } finally {
+        parts.button.textContent = previous;
+        parts.button.disabled = false;
+        if (!fromBatch) { busy = false; generateAllButton.disabled = false; }
+      }
+    }
+
+    generateAllButton.addEventListener('click', async () => {
+      if (busy) return;
+      busy = true;
+      setError();
+      generateAllButton.disabled = true;
+      textArea.disabled = true;
+      let completed = 0;
+      for (const stage of stages) {
+        if (!stage.ready) continue;
+        progress.textContent = `正在生成 Stage ${stage.stage} · ${completed} / 7 完成`;
+        if (await generateStage(stage.stage, true)) completed += 1;
+      }
+      progress.textContent = completed === 7 ? '七個階段都生成完成' : `完成 ${completed} / 7，請查看錯誤訊息`;
+      textArea.disabled = false;
+      generateAllButton.disabled = false;
+      busy = false;
+    });
+
+    loadStages();
+  </script>
+</body>
+</html>
