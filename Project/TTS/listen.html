@@ -44,6 +44,19 @@
     .primary { background: var(--blue); color: white; }
     .secondary { border: 1px solid #bdc8cf; background: #fff; color: var(--ink); }
     .progress { flex: 1; min-width: 180px; color: var(--muted); font-size: 13px; text-align: right; }
+    .overall-meter { position: relative; height: 7px; margin-top: 13px; overflow: hidden; border-radius: 999px; background: #dfe6e8; opacity: 0; transform: scaleY(.65); transform-origin: center; transition: opacity .2s, transform .2s; }
+    .overall-meter.active { opacity: 1; transform: scaleY(1); }
+    .overall-fill { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--blue), var(--cyan), var(--orange)); transition: width .28s ease; }
+    .overall-meter.failed .overall-fill { background: var(--danger); }
+    .quick-player { display: grid; grid-template-columns: minmax(180px, .7fr) minmax(0, 2fr); gap: 18px; align-items: center; margin-top: 14px; padding: 14px 16px; border: 1px solid #cbd5dc; border-radius: 14px; background: rgba(255, 253, 248, .74); }
+    .quick-title { margin: 0; font-size: 13px; font-weight: 820; }
+    .quick-hint { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; font-weight: 500; }
+    .quick-buttons { display: grid; grid-template-columns: repeat(7, minmax(74px, 1fr)); gap: 7px; }
+    .quick-button { display: flex; min-width: 0; min-height: 38px; padding: 0 9px; align-items: center; justify-content: center; gap: 6px; border: 1px solid #bdc9cf; background: #fff; color: var(--blue); font-size: 11px; white-space: nowrap; }
+    .quick-button:disabled { cursor: not-allowed; background: #eceeea; color: #89949b; opacity: .66; }
+    .quick-button:not(:disabled)::before { color: var(--orange); content: "▶"; font-size: 10px; }
+    .quick-button.playing { border-color: var(--cyan); background: #eaf5f5; color: #17596a; box-shadow: 0 0 0 3px rgba(43, 131, 146, .1); }
+    .quick-button.playing::before { content: "Ⅱ"; font-size: 11px; font-weight: 900; }
     .error { display: none; margin: 13px 0 0; padding: 11px 13px; border-radius: 9px; background: #fbe9e6; color: var(--danger); font-size: 14px; }
     .error.visible { display: block; }
     .section-head { display: flex; justify-content: space-between; gap: 16px; align-items: end; margin: 38px 0 16px; }
@@ -62,6 +75,17 @@
     .stage-actions { display: flex; align-items: center; gap: 8px; }
     .generate-one { min-height: 36px; padding: 0 12px; border: 1px solid #b9c7cf; background: #fff; color: var(--blue); font-size: 12px; }
     .state { overflow: hidden; flex: 1; color: var(--muted); font-size: 12px; text-align: right; text-overflow: ellipsis; white-space: nowrap; }
+    .stage-meter { display: grid; grid-template-columns: 1fr auto; gap: 7px; align-items: center; max-height: 0; margin-top: 0; overflow: hidden; opacity: 0; transition: max-height .22s ease, margin-top .22s ease, opacity .22s ease; }
+    .stage-meter.visible { max-height: 24px; margin-top: 9px; opacity: 1; }
+    .stage-track { position: relative; height: 6px; overflow: hidden; border-radius: 999px; background: #e1e7e9; }
+    .stage-fill { position: relative; display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--blue), var(--cyan)); transition: width .28s ease; }
+    .stage-card:nth-child(n+5) .stage-fill { background: linear-gradient(90deg, var(--orange), #e8a35d); }
+    .stage-card.generating { border-color: #91b4bf; box-shadow: 0 10px 28px rgba(24, 77, 104, .12); }
+    .stage-card.generating .stage-number { animation: stage-pulse 1.25s ease-in-out infinite; }
+    .stage-card.generating .stage-fill::after { position: absolute; inset: 0; width: 42%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.72), transparent); content: ""; animation: stage-shimmer 1.25s linear infinite; }
+    .stage-card.progress-complete { border-color: #8fbaa0; }
+    .stage-card.progress-failed .stage-fill { background: var(--danger); }
+    .stage-percent { min-width: 50px; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; text-align: right; }
     audio { display: none; width: 100%; height: 38px; margin-top: 8px; }
     audio.ready { display: block; }
     .download { display: none; margin-top: 5px; color: var(--cyan); font-size: 11px; font-weight: 750; text-decoration: none; }
@@ -69,7 +93,17 @@
     .not-ready { opacity: .58; }
     footer { margin-top: 26px; padding: 18px 0; border-top: 1px solid #cbd3d7; color: var(--muted); font-size: 12px; line-height: 1.6; }
     code { padding: 2px 5px; border-radius: 4px; background: #e7e4dc; color: #354b58; }
+    @keyframes stage-pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 1px #aec0cb; }
+      50% { transform: scale(1.07); box-shadow: 0 0 0 7px rgba(43, 131, 146, .12); }
+    }
+    @keyframes stage-shimmer { from { transform: translateX(-120%); } to { transform: translateX(340%); } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
     @media (max-width: 900px) {
+      .quick-player { grid-template-columns: 1fr; gap: 10px; }
+      .quick-buttons { grid-template-columns: repeat(4, minmax(74px, 1fr)); }
       .stage-card { grid-template-columns: 52px 1fr 1.3fr; }
       .player { grid-column: 2 / -1; }
     }
@@ -78,6 +112,7 @@
       header { grid-template-columns: 1fr; }
       .local-badge { width: max-content; }
       .composer { padding: 16px; }
+      .quick-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .progress { flex-basis: 100%; text-align: left; }
       .section-head { display: block; }
       .section-note { margin-top: 8px; text-align: left; }
@@ -109,12 +144,22 @@
         <button class="secondary" id="resetText">恢復比較句</button>
         <span class="progress" id="progress" aria-live="polite">模型狀態讀取中</span>
       </div>
+      <div class="overall-meter" id="overallMeter" role="progressbar" aria-label="七階段整體生成進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <span class="overall-fill" id="overallFill"></span>
+      </div>
       <p class="error" id="globalError" role="alert"></p>
+    </section>
+
+    <section class="quick-player" aria-labelledby="quickTitle">
+      <p class="quick-title" id="quickTitle">快速播放
+        <span class="quick-hint">完成的階段會自動開放</span>
+      </p>
+      <div class="quick-buttons" id="quickButtons"></div>
     </section>
 
     <div class="section-head">
       <h2>Methods through time</h2>
-      <p class="section-note">所有音檔都在本機產生並快取。切換大型模型需要載入時間；Stage 5 的 WaveRNN 通常需等待 1–2 分鐘。</p>
+      <p class="section-note">所有音檔都在本機產生並快取。百分比依本機實測時間估算，完成狀態由後端確認；Stage 5 的 WaveRNN 通常需等待 1–2 分鐘。</p>
     </div>
     <main class="timeline" id="stageList" aria-live="polite"></main>
 
@@ -132,8 +177,21 @@
     const stageList = document.querySelector('#stageList');
     const generateAllButton = document.querySelector('#generateAll');
     const readyBadge = document.querySelector('#readyBadge');
+    const overallMeter = document.querySelector('#overallMeter');
+    const overallFill = document.querySelector('#overallFill');
+    const quickButtons = document.querySelector('#quickButtons');
     let stages = [];
     let busy = false;
+
+    const progressProfiles = {
+      1: { seconds: 5, phases: ['分析文字與音素', '計算共振峰控制參數', 'KLSYN 合成波形'] },
+      2: { seconds: 4, phases: ['分析文字與音素', '選取雙音素單元', '拼接並正規化音訊'] },
+      3: { seconds: 5, phases: ['建立語言特徵', 'HTS 預測聲學參數', 'Vocoder 合成波形'] },
+      4: { seconds: 15, phases: ['載入 Tacotron 2', '預測 Mel 頻譜', 'Griffin-Lim 重建波形'] },
+      5: { seconds: 95, phases: ['載入 Tacotron 2', '預測 Mel 頻譜', 'WaveRNN 逐點生成波形'] },
+      6: { seconds: 10, phases: ['載入 FastPitch', '平行預測 Mel 頻譜', 'HiFi-GAN 生成波形'] },
+      7: { seconds: 20, phases: ['讀取參考聲音', 'Flow-matching 推論', '輸出並正規化音訊'] }
+    };
 
     const updateCount = () => { charCount.textContent = textArea.value.length; };
     textArea.addEventListener('input', updateCount);
@@ -148,6 +206,43 @@
     function setError(message = '') {
       errorBox.textContent = message;
       errorBox.classList.toggle('visible', Boolean(message));
+    }
+
+    function setQuickPlaybackState(stage, playing) {
+      const button = quickButtons.querySelector(`[data-quick-stage="${stage}"]`);
+      if (!button) return;
+      button.classList.toggle('playing', playing);
+      button.setAttribute('aria-label', `${playing ? '暫停' : '播放'} Stage ${stage} 語音`);
+    }
+
+    function createQuickButton(stage) {
+      const button = document.createElement('button');
+      button.className = 'quick-button';
+      button.dataset.quickStage = stage.stage;
+      button.textContent = `Stage ${stage.stage}`;
+      button.disabled = true;
+      button.setAttribute('aria-label', `Stage ${stage.stage} 尚未生成`);
+      button.addEventListener('click', async () => {
+        const parts = cardParts(stage.stage);
+        if (!parts.audio.src) return;
+        if (!parts.audio.paused) {
+          parts.audio.pause();
+          return;
+        }
+        try {
+          await parts.audio.play();
+        } catch (error) {
+          setError(`無法播放 Stage ${stage.stage}：${error.message}`);
+        }
+      });
+      return button;
+    }
+
+    function enableQuickPlayback(stage) {
+      const button = quickButtons.querySelector(`[data-quick-stage="${stage}"]`);
+      if (!button) return;
+      button.disabled = false;
+      button.setAttribute('aria-label', `播放 Stage ${stage} 語音`);
     }
 
     function createStageCard(stage) {
@@ -187,16 +282,41 @@
       button.addEventListener('click', () => generateStage(stage.stage));
       const state = document.createElement('span');
       state.className = 'state';
-      state.textContent = stage.ready ? (stage.gpu ? 'GPU' : 'CPU') : stage.missing.join('、');
+      const compute = [4, 5].includes(stage.stage) ? 'GPU + CPU' : (stage.gpu ? 'GPU' : 'CPU');
+      state.textContent = stage.ready ? compute : stage.missing.join('、');
+      const meter = document.createElement('div');
+      meter.className = 'stage-meter';
+      meter.setAttribute('role', 'progressbar');
+      meter.setAttribute('aria-label', `Stage ${stage.stage} 生成進度`);
+      meter.setAttribute('aria-valuemin', '0');
+      meter.setAttribute('aria-valuemax', '100');
+      meter.setAttribute('aria-valuenow', '0');
+      const track = document.createElement('div');
+      track.className = 'stage-track';
+      const fill = document.createElement('span');
+      fill.className = 'stage-fill';
+      const percent = document.createElement('span');
+      percent.className = 'stage-percent';
+      percent.textContent = '0%';
+      track.append(fill);
+      meter.append(track, percent);
       const audio = document.createElement('audio');
       audio.controls = true;
       audio.preload = 'metadata';
+      audio.addEventListener('play', () => {
+        document.querySelectorAll('.stage-card audio').forEach(other => {
+          if (other !== audio && !other.paused) other.pause();
+        });
+        setQuickPlaybackState(stage.stage, true);
+      });
+      audio.addEventListener('pause', () => setQuickPlaybackState(stage.stage, false));
+      audio.addEventListener('ended', () => setQuickPlaybackState(stage.stage, false));
       const download = document.createElement('a');
       download.className = 'download';
       download.textContent = '下載 WAV';
       download.download = `stage${stage.stage}.wav`;
       controls.append(button, state);
-      player.append(controls, audio, download);
+      player.append(controls, meter, audio, download);
       article.append(number, identity, method, player);
       return article;
     }
@@ -207,6 +327,7 @@
         const payload = await response.json();
         stages = payload.stages;
         stageList.replaceChildren(...stages.map(createStageCard));
+        quickButtons.replaceChildren(...stages.map(createQuickButton));
         readyBadge.textContent = payload.all_ready ? '七個階段皆已就緒' : '部分模型尚未安裝';
         progress.textContent = payload.all_ready ? '可以開始生成' : '請先執行安裝腳本';
         generateAllButton.disabled = !payload.all_ready;
@@ -221,12 +342,66 @@
       return {
         button: card.querySelector('.generate-one'),
         state: card.querySelector('.state'),
+        card,
+        meter: card.querySelector('.stage-meter'),
+        fill: card.querySelector('.stage-fill'),
+        percent: card.querySelector('.stage-percent'),
         audio: card.querySelector('audio'),
         download: card.querySelector('.download')
       };
     }
 
-    async function generateStage(stage, fromBatch = false) {
+    function setOverallProgress(fraction, failed = false) {
+      const percentage = Math.max(0, Math.min(100, Math.round(fraction * 100)));
+      overallMeter.classList.add('active');
+      overallMeter.classList.toggle('failed', failed);
+      overallMeter.setAttribute('aria-valuenow', percentage);
+      overallFill.style.width = `${percentage}%`;
+    }
+
+    function startProgressAnimation(stage, parts, onProgress) {
+      const profile = progressProfiles[stage];
+      const lengthFactor = Math.max(.55, Math.min(4, textArea.value.trim().length / comparisonText.length));
+      const expectedSeconds = profile.seconds * lengthFactor;
+      const started = performance.now();
+      parts.card.classList.remove('progress-complete', 'progress-failed');
+      parts.card.classList.add('generating');
+      parts.meter.classList.add('visible');
+
+      const render = () => {
+        const elapsed = (performance.now() - started) / 1000;
+        const percentage = Math.min(94, Math.max(3, Math.round(elapsed / expectedSeconds * 90)));
+        const phaseIndex = Math.min(profile.phases.length - 1, Math.floor(percentage / 34));
+        parts.fill.style.width = `${percentage}%`;
+        parts.percent.textContent = `約 ${percentage}%`;
+        parts.meter.setAttribute('aria-valuenow', percentage);
+        parts.state.textContent = `${profile.phases[phaseIndex]} · ${Math.floor(elapsed)}s`;
+        if (onProgress) onProgress(percentage / 100, elapsed);
+      };
+
+      render();
+      const timer = window.setInterval(render, 300);
+      return {
+        complete() {
+          window.clearInterval(timer);
+          parts.fill.style.width = '100%';
+          parts.percent.textContent = '100%';
+          parts.meter.setAttribute('aria-valuenow', '100');
+          parts.card.classList.remove('generating');
+          parts.card.classList.add('progress-complete');
+          if (onProgress) onProgress(1, (performance.now() - started) / 1000);
+          window.setTimeout(() => parts.card.classList.remove('progress-complete'), 1200);
+        },
+        fail() {
+          window.clearInterval(timer);
+          parts.card.classList.remove('generating');
+          parts.card.classList.add('progress-failed');
+          parts.percent.textContent = '失敗';
+        }
+      };
+    }
+
+    async function generateStage(stage, fromBatch = false, onProgress = null) {
       const text = textArea.value.trim();
       if (!text) { setError('請先輸入要朗讀的英文。'); return false; }
       if (!fromBatch && busy) { return false; }
@@ -234,9 +409,17 @@
       const previous = parts.button.textContent;
       parts.button.disabled = true;
       parts.button.textContent = '生成中…';
-      parts.state.textContent = stage === 7 ? '載入 prompt 模型，請稍候' : '載入模型並合成';
       setError();
-      if (!fromBatch) { busy = true; generateAllButton.disabled = true; }
+      if (!fromBatch) {
+        busy = true;
+        generateAllButton.disabled = true;
+        overallMeter.classList.remove('active', 'failed');
+        overallFill.style.width = '0';
+      }
+      const reportProgress = onProgress || ((fraction, elapsed) => {
+        if (!fromBatch) progress.textContent = `Stage ${stage} 生成中 · 估計 ${Math.round(fraction * 100)}% · ${Math.floor(elapsed)}s`;
+      });
+      const animation = startProgressAnimation(stage, parts, reportProgress);
       try {
         const response = await fetch('/api/synthesize', {
           method: 'POST',
@@ -248,13 +431,18 @@
         const audioUrl = `${payload.audio_url}?v=${Date.now()}`;
         parts.audio.src = audioUrl;
         parts.audio.classList.add('ready');
+        enableQuickPlayback(stage);
         parts.download.href = payload.audio_url;
         parts.download.classList.add('visible');
+        animation.complete();
         parts.state.textContent = `${payload.cached ? '使用快取' : `完成 ${payload.elapsed_seconds}s`} · 音訊 ${payload.duration_seconds}s`;
+        if (!fromBatch) progress.textContent = `Stage ${stage} 已完成`;
         return true;
       } catch (error) {
+        animation.fail();
         parts.state.textContent = '生成失敗';
         setError(error.message);
+        if (!fromBatch) progress.textContent = `Stage ${stage} 生成失敗`;
         return false;
       } finally {
         parts.button.textContent = previous;
@@ -269,13 +457,22 @@
       setError();
       generateAllButton.disabled = true;
       textArea.disabled = true;
+      const readyStages = stages.filter(stage => stage.ready);
       let completed = 0;
-      for (const stage of stages) {
-        if (!stage.ready) continue;
-        progress.textContent = `正在生成 Stage ${stage.stage} · ${completed} / 7 完成`;
-        if (await generateStage(stage.stage, true)) completed += 1;
+      let processed = 0;
+      setOverallProgress(0);
+      for (const stage of readyStages) {
+        const updateBatchProgress = (stageFraction, elapsed) => {
+          setOverallProgress((processed + stageFraction) / readyStages.length);
+          progress.textContent = `Stage ${stage.stage} 生成中 · 約 ${Math.round(stageFraction * 100)}% · 已完成 ${completed} / ${readyStages.length}`;
+        };
+        if (await generateStage(stage.stage, true, updateBatchProgress)) completed += 1;
+        processed += 1;
+        setOverallProgress(processed / readyStages.length);
       }
-      progress.textContent = completed === 7 ? '七個階段都生成完成' : `完成 ${completed} / 7，請查看錯誤訊息`;
+      const allComplete = completed === readyStages.length;
+      setOverallProgress(1, !allComplete);
+      progress.textContent = allComplete ? '七個階段都生成完成' : `完成 ${completed} / ${readyStages.length}，請查看錯誤訊息`;
       textArea.disabled = false;
       generateAllButton.disabled = false;
       busy = false;
